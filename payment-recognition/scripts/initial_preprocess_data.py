@@ -2,7 +2,7 @@ import pandas as pd
 from transformers import AutoModelForQuestionAnswering, AutoTokenizer, pipeline
 
 # Step 1: Load the data
-data_path = '../data/raw/generated_data.csv'
+data_path = '../data/raw/initial_data.csv'
 df = pd.read_csv(data_path)
 
 # Initialize the QA model with the new model name
@@ -32,5 +32,5 @@ for index, row in df.iterrows():
         df.at[index, 'description'] = ""  # Clear the description
 
 # Step 4: Save the preprocessed data to a new CSV file
-output_path = '../data/preprocessed/clean_data.csv'
+output_path = '../data/preprocessed/initial_preprocessed_data.csv'
 df.to_csv(output_path, index=False)

@@ -87,8 +87,8 @@ def save_to_csv(data, filepath):
             writer.writerow(record)
 
 # Generate and save data
-num_records = 50000  # Number of records to generate
+num_records = 5000  # Number of records to generate
 data = generate_data(num_records)
-save_to_csv(data, '../data/raw/generated_payments.csv')
+save_to_csv(data, '../data/raw/initial_data.csv')
 
-print(f"{num_records} records have been generated and saved to data/raw/payments.csv")
+print(f"{num_records} records have been generated and saved to data/raw/initial_data.csv")

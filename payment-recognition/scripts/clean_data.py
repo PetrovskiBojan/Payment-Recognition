@@ -2,9 +2,40 @@ import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 import joblib
 
-# Step 1: Load the preprocessed data
-data_path = '../data/preprocessed/preprocessed_data.csv'
-df = pd.read_csv(data_path)
+# Paths to the files
+preprocessed_data_path = '../data/preprocessed/preprocessed_data.csv'
+initial_preprocessed_data_path = '../data/preprocessed/initial_preprocessed_data.csv'
+generated_data_path = '../data/raw/generated_data.csv'
+initial_raw_data_path = '../data/raw/initial_data.csv'
+reference_data_path = '../data/validate/reference_data.csv'
+
+# Function to read and append last 100 rows from one CSV to another
+def append_last_100_rows(source_path, target_path):
+    # Read the source file and take the last 100 rows
+    source_df = pd.read_csv(source_path)
+    last_100_rows = source_df.tail(100)
+    
+    # Read the target file
+    target_df = pd.read_csv(target_path)
+    
+    # Append the last 100 rows to the target dataframe
+    updated_df = pd.concat([target_df, last_100_rows], ignore_index=True)
+    
+    # Save the updated dataframe back to the target file
+    updated_df.to_csv(target_path, index=False)
+
+# Save the initial preprocessed data to the reference path before appending
+initial_preprocessed_data_df = pd.read_csv(initial_preprocessed_data_path)
+initial_preprocessed_data_df.to_csv(reference_data_path, index=False)
+
+# Append last 100 rows from preprocessed_data.csv to initial_preprocessed_data.csv
+append_last_100_rows(preprocessed_data_path, initial_preprocessed_data_path)
+
+# Append last 100 rows from generated_data.csv to initial_raw_data.csv
+append_last_100_rows(generated_data_path, initial_raw_data_path)
+
+# Load the preprocessed data again after appending the last 100 rows
+df = pd.read_csv(preprocessed_data_path)
 
 # Step 2: Drop the 'description' column
 df = df.drop(columns=['description'])
@@ -27,8 +58,17 @@ df['IBAN'] = le.fit_transform(df['IBAN'])
 encoder_filename = '../data/scaler_params/label_encoders.joblib'
 joblib.dump(le, encoder_filename)
 
-# Step 5: Save the preprocessed data to a new CSV file
-output_path = '../data/clean/cleaned_data.csv'
-df.to_csv(output_path, index=False)
+# Step 5: Separate unique references and duplicates
+duplicates = df[df.duplicated(subset='reference', keep=False)]
+unique = df.drop_duplicates(subset='reference', keep=False)
 
-print(f"Data saved to {output_path}")
+# Step 6: Save the separated data to new CSV files
+train_data_path = '../data/clean/train_data.csv'
+test_data_path = '../data/clean/test_data.csv'
+unique.to_csv(train_data_path, index=False)
+duplicates.to_csv(test_data_path, index=False)
+
+print(f"Unique references saved to {train_data_path}")
+print(f"Duplicates saved to {test_data_path}")
+
+print("Data processing complete.")

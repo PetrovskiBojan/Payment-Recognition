@@ -108,7 +108,7 @@ def save_to_csv(data, filepath):
             writer.writerow(record)
 
 # File path for the existing and generated data
-existing_file_path = '../data/raw/initial_data.csv'
+existing_file_path = '../data/preprocessed/initial_preprocessed_data.csv'
 new_file_path = '../data/raw/generated_data.csv'
 
 # Read all payments
@@ -118,8 +118,8 @@ base_records = read_payments(existing_file_path)
 sampled_records = random.sample(base_records, 1000) if len(base_records) >= 1000 else base_records
 
 # Generate new data
-num_normal = 900
-num_anomalous = 100
+num_normal = 90
+num_anomalous = 10
 new_data = generate_data(sampled_records, num_normal, num_anomalous)
 
 # Combine the old and new data
