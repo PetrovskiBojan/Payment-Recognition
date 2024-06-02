@@ -115,11 +115,11 @@ new_file_path = '../data/raw/generated_data.csv'
 base_records = read_payments(existing_file_path)
 
 # Sample 1000 records from the existing records
-sampled_records = random.sample(base_records, 1000) if len(base_records) >= 1000 else base_records
+sampled_records = random.sample(base_records, 100) if len(base_records) >= 100 else base_records
 
 # Generate new data
-num_normal = 90
-num_anomalous = 10
+num_normal = 95
+num_anomalous = 5
 new_data = generate_data(sampled_records, num_normal, num_anomalous)
 
 # Combine the old and new data

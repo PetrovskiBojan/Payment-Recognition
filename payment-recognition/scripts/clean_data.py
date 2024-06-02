@@ -62,13 +62,24 @@ joblib.dump(le, encoder_filename)
 duplicates = df[df.duplicated(subset='reference', keep=False)]
 unique = df.drop_duplicates(subset='reference', keep=False)
 
+# Ensure at least one record of each duplicate is in the train set
+train_data = unique.copy()
+test_data = pd.DataFrame()
+
+for ref in duplicates['reference'].unique():
+    ref_duplicates = duplicates[duplicates['reference'] == ref]
+    # Add the first occurrence to the train set
+    train_data = pd.concat([train_data, ref_duplicates.iloc[[0]]])
+    # Add the remaining occurrences to the test set
+    test_data = pd.concat([test_data, ref_duplicates.iloc[1:]])
+
 # Step 6: Save the separated data to new CSV files
 train_data_path = '../data/clean/train_data.csv'
 test_data_path = '../data/clean/test_data.csv'
-unique.to_csv(train_data_path, index=False)
-duplicates.to_csv(test_data_path, index=False)
+train_data.to_csv(train_data_path, index=False)
+test_data.to_csv(test_data_path, index=False)
 
-print(f"Unique references saved to {train_data_path}")
-print(f"Duplicates saved to {test_data_path}")
+print(f"Unique references and one of each duplicate saved to {train_data_path}")
+print(f"Remaining duplicates saved to {test_data_path}")
 
 print("Data processing complete.")

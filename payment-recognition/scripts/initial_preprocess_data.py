@@ -27,7 +27,7 @@ for index, row in df.iterrows():
     print("reference:", reference, "score:", str(score))
     
     # Update the reference field if the model's confidence is above 90%
-    if score > 0.2:
+    if score > 0.5:
         df.at[index, 'reference'] = str(reference)  # Explicitly cast to string if necessary
         df.at[index, 'description'] = ""  # Clear the description
 
