@@ -36,7 +36,9 @@ jobs:
         run: |
           dvc remote modify origin access_key_id ${{ secrets.DVC_ACCESS_KEY_ID }} --local
           dvc remote modify origin secret_access_key ${{ secrets.DVC_SECRET_ACCESS_KEY }} --local
-  
+      - name: Pull Merged Data with DVC
+        run: |
+          dvc pull data
       - name: Fetch Data
         run: |
           poetry run python scripts/generate_data.py
