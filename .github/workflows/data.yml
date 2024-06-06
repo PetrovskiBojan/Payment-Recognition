@@ -34,7 +34,7 @@ jobs:
           dvc remote modify origin secret_access_key ${{ secrets.DVC_SECRET_ACCESS_KEY }} --local
       - name: Pull Existing Data with DVC
         run: |
-          dvc pull data/preprocessed/initial_preprocessed_data.csv
+          dvc pull data
       - name: Check Data File
         run: |
           if [ ! -s data/preprocessed/initial_preprocessed_data.csv ]; then
