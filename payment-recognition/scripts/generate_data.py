@@ -91,11 +91,14 @@ def read_payments(filepath):
 # Generate synthetic data
 def generate_data(base_records, num_normal, num_anomalous):
     data = []
-    for _ in range(num_normal):
-        base_record = random.choice(base_records)
-        data.append(generate_payment_record(base_record=base_record))
-    for _ in range(num_anomalous):
-        data.append(generate_payment_record(anomalous=True))
+    if base_records:  # Check if base_records is not empty
+        for _ in range(num_normal):
+            base_record = random.choice(base_records)
+            data.append(generate_payment_record(base_record=base_record))
+        for _ in range(num_anomalous):
+            data.append(generate_payment_record(anomalous=True))
+    else:
+        print("Base data not found. Skipping data generation.")
     return data
 
 # Save data to CSV file
