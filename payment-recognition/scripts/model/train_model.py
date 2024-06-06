@@ -12,6 +12,7 @@ import joblib
 import onnx
 from skl2onnx import convert_sklearn
 from skl2onnx.common.data_types import FloatTensorType
+from onnxruntime.quantization import quantize_dynamic, QuantType
 
 # Load environment variables from .env file
 load_dotenv()
@@ -97,9 +98,17 @@ with mlflow.start_run():
     with open(onnx_model_path, "wb") as f:
         f.write(onnx_model.SerializeToString())
 
+    # Quantize the ONNX model
+    quantized_model_path = os.path.join(model_save_path, "model.quant.onnx")
+    quantize_dynamic(onnx_model_path, quantized_model_path, weight_type=QuantType.QUInt8)
+
+    # Log the quantized model to MLflow
+    mlflow.log_artifact(quantized_model_path, "quantized_model")
+
     is_best_model = True
 
     if is_best_model:
         mlflow.set_tag("model", "PRODUCTION")
 
 print(f"Model and ONNX model have been saved to {model_save_path}.")
+print(f"Quantized ONNX model has been saved to {quantized_model_path}.")
