@@ -84,7 +84,7 @@ jobs:
       - name: Pull Merged Data with DVC
         run: |
           dvc pull data
-      - name: Fetch Data
+      - name: Run script
         run: |
           poetry run python scripts/preprocess_incoming_data.py
   
@@ -129,7 +129,7 @@ jobs:
       - name: Pull Merged Data with DVC
         run: |
           dvc pull data
-      - name: Fetch Data
+      - name: Run  Data
         run: |
           poetry run python scripts/clean_data.py
   
@@ -175,7 +175,7 @@ jobs:
       - name: Pull Merged Data with DVC
         run: |
           dvc pull data
-      - name: Fetch Data
+      - name: Run script
         run: |
           poetry run python scripts/validate_data.py
   
