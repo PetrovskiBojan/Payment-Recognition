@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: payment-recognition  
+        working-directory: payment-recognition
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
@@ -32,18 +32,22 @@ jobs:
         run: |
           dvc remote modify origin access_key_id ${{ secrets.DVC_ACCESS_KEY_ID }} --local
           dvc remote modify origin secret_access_key ${{ secrets.DVC_SECRET_ACCESS_KEY }} --local
-      - name: Fetch Data
+      - name: Pull Existing Data with DVC
         run: |
-          poetry run python scripts/generate_data.py  # Update this script as needed
-      - name: DVC Add and Push
+          dvc pull data/preprocessed/initial_preprocessed_data.csv
+      - name: Generate Data
+        run: |
+          poetry run python scripts/generate_data.py
+      - name: DVC Add and Push New Data
         run: |
           dvc add data
           dvc push
       - name: Git Operations
         run: |
           git add .
-          git commit -m "Update fetched data" || echo "No changes to commit"
+          git commit -m "Update generated data" || echo "No changes to commit"
           git push
+
 
   preprocess_data:
     needs: fetch_data
