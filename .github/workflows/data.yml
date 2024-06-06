@@ -44,19 +44,17 @@ jobs:
       - name: Generate Data
         run: |
           poetry run python scripts/generate_data.py
-      - name: DVC Add and Push New Data
-        run: |
-          dvc add data
-          dvc push
       - name: Set up Git identity
         run: |
           git config --global user.email "you@example.com"
           git config --global user.name "Your Name"
-      - name: Git Operations
+      - name: Git and DVC Operations
         run: |
+          dvc add data
           git add .
-          git commit -m "Update generated data" || echo "No changes to commit"
+          git commit -m "Update trained data" || echo "No changes to commit"
           git push
+          dvc push -r origin
           
   preprocess_data:
     needs: fetch_data
