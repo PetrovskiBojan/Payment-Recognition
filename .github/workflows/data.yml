@@ -39,7 +39,7 @@ jobs:
   
       - name: Fetch Data
         run: |
-          poetry run python scripts/fetch_data.py
+          poetry run python scripts/generate_data.py
   
       - name: DVC Add and Push
         run: |
