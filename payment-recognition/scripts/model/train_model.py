@@ -102,13 +102,14 @@ with mlflow.start_run():
     quantized_model_path = os.path.join(model_save_path, "model.quant.onnx")
     quantize_dynamic(onnx_model_path, quantized_model_path, weight_type=QuantType.QUInt8)
 
-    # Log the quantized model to MLflow
-    mlflow.log_artifact(quantized_model_path, "quantized_model")
+    # Log the ONNX models as artifacts in MLflow
+    mlflow.log_artifact(onnx_model_path, "onnx_models")
+    mlflow.log_artifact(quantized_model_path, "quantized_models")
 
     is_best_model = True
 
     if is_best_model:
         mlflow.set_tag("model", "PRODUCTION")
 
-print(f"Model and ONNX model have been saved to {model_save_path}.")
+print(f"Model and ONNX models have been saved to {model_save_path}.")
 print(f"Quantized ONNX model has been saved to {quantized_model_path}.")
