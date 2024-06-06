@@ -15,7 +15,7 @@ def run_dvc_pull(data_directory):
         raise
 
 # Specify the directory containing DVC-tracked data
-data_directory = '/data'  
+data_directory = 'data'  
 
 # Pull the latest data from DVC
 run_dvc_pull(data_directory)
