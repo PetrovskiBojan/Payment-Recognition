@@ -16,46 +16,41 @@ jobs:
         working-directory: payment-recognition
     steps:
       - uses: actions/checkout@v2
+  
       - uses: actions/setup-python@v2
         with:
           python-version: '3.12'
+  
       - name: Install and Configure Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
           echo "$HOME/.local/bin" >> $GITHUB_PATH
           poetry config virtualenvs.create false
           poetry install
+  
       - name: Install DVC with S3 support
         run: |
           pip install 'dvc[s3]'
+  
       - name: Configure DVC remote credentials
         run: |
           dvc remote modify origin access_key_id ${{ secrets.DVC_ACCESS_KEY_ID }} --local
           dvc remote modify origin secret_access_key ${{ secrets.DVC_SECRET_ACCESS_KEY }} --local
-      - name: Pull Existing Data with DVC
+  
+      - name: Fetch Data
         run: |
-          dvc pull data
-      - name: Check Data File
-        run: |
-          if [ ! -s data/preprocessed/initial_preprocessed_data.csv ]; then
-            echo "Error: Data file is missing or empty."
-            exit 1
-          fi
-      - name: Generate Data
-        run: |
-          poetry run python scripts/generate_data.py
-      - name: Set up Git identity
-        run: |
-          git config --global user.email "you@example.com"
-          git config --global user.name "Your Name"
-      - name: Git and DVC Operations
+          poetry run python scripts/fetch_data.py
+  
+      - name: DVC Add and Push
         run: |
           dvc add data
+          dvc push
+  
+      - name: Git Operations
+        run: |
           git add .
-          git commit -m "Update trained data" || echo "No changes to commit"
-          git push
-          dvc push -r origin
-          
+          git commit -m "Update fetched data" || echo "No changes to commit"
+          git push 
   preprocess_data:
     needs: fetch_data
     runs-on: ubuntu-latest
