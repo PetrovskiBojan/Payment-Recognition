@@ -1,0 +1,168 @@
+name: Data Pipeline
+
+on:
+  schedule:
+    - cron: '30 23 * * *'  # Runs at 16:30 UTC every day
+  push:
+    paths:
+      - 'payment-recognition/data/**'  # Trigger on changes in the data folder
+  workflow_dispatch:
+
+jobs:
+  fetch_data:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: payment-recognition  
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.12'
+      - name: Install and Configure Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          poetry config virtualenvs.create false
+          poetry install
+      - name: Install DVC with S3 support
+        run: |
+          pip install 'dvc[s3]'
+      - name: Configure DVC remote credentials
+        run: |
+          dvc remote modify origin access_key_id ${{ secrets.DVC_ACCESS_KEY_ID }} --local
+          dvc remote modify origin secret_access_key ${{ secrets.DVC_SECRET_ACCESS_KEY }} --local
+      - name: Fetch Data
+        run: |
+          poetry run python scripts/generate_data.py  # Update this script as needed
+      - name: DVC Add and Push
+        run: |
+          dvc add data
+          dvc push
+      - name: Git Operations
+        run: |
+          git add .
+          git commit -m "Update fetched data" || echo "No changes to commit"
+          git push
+
+  preprocess_data:
+    needs: fetch_data
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: payment-recognition
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.12'
+      - name: Install and Configure Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          poetry config virtualenvs.create false
+          poetry install
+      - name: Configure DVC remote credentials
+        run: |
+          dvc remote modify origin access_key_id ${{ secrets.DVC_ACCESS_KEY_ID }} --local
+          dvc remote modify origin secret_access_key ${{ secrets.DVC_SECRET_ACCESS_KEY }} --local
+      - name: Preprocess Data
+        run: |
+          poetry run python scripts/preprocess_incoming_data.py  # Update this script as needed
+      - name: DVC Add and Push
+        run: |
+          dvc add data
+          dvc push
+      - name: Git Operations
+        run: |
+          git add .
+          git commit -m "Update preprocessed data" || echo "No changes to commit"
+          git push
+
+  merge_data:
+    needs: preprocess_data
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: payment-recognition
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.12'
+      - name: Install and Configure Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          poetry config virtualenvs.create false
+          poetry install
+      - name: Configure DVC remote credentials
+        run: |
+          dvc remote modify origin access_key_id ${{ secrets.DVC_ACCESS_KEY_ID }} --local
+          dvc remote modify origin secret_access_key ${{ secrets.DVC_SECRET_ACCESS_KEY }} --local
+      - name: Pull Processed Data with DVC
+        run: |
+          dvc pull data
+      - name: Merge Data
+        run: |
+          poetry run python scripts/clean_data.py  
+      - name: DVC Add and Push merged data
+        run: |
+          dvc add data
+          dvc push
+      - name: Git Operations for merged data
+        run: |
+          git add .
+          git commit -m "Update merged data" || echo "No changes to commit"
+          git push
+
+  validate_data:
+    needs: merge_data
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend/IE-app  # Update this path as needed
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.12'
+      - name: Install and Configure Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          poetry config virtualenvs.create false
+          poetry install
+      - name: Configure DVC remote credentials
+        run: |
+          dvc remote modify origin access_key_id ${{ secrets.DVC_ACCESS_KEY_ID }} --local
+          dvc remote modify origin secret_access_key ${{ secrets.DVC_SECRET_ACCESS_KEY }} --local
+      - name: Pull Merged Data with DVC
+        run: |
+          dvc pull data
+      - name: Validate Data
+        run: |
+          poetry run python scripts/validate_data.py  # Update this script as needed
+      - name: DVC Add and Push merged data
+        run: |
+          dvc add data
+          dvc push
+      - name: Git Operations for merged data
+        run: |
+          git add .
+          git commit -m "Update merged data" || echo "No changes to commit"
+          git push
+
+  deploy_report:
+    needs: validate_data
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Deploy DataDocs to Netlify
+        uses: nwtgck/actions-netlify@v1.2
+        with:
+          publish-dir: "payment-recognition/reports/index.html"
+          production-deploy: true
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
