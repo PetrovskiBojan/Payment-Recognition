@@ -35,6 +35,12 @@ jobs:
       - name: Pull Existing Data with DVC
         run: |
           dvc pull data/preprocessed/initial_preprocessed_data.csv
+      - name: Check Data File
+        run: |
+          if [ ! -s data/preprocessed/initial_preprocessed_data.csv ]; then
+            echo "Error: Data file is missing or empty."
+            exit 1
+          fi
       - name: Generate Data
         run: |
           poetry run python scripts/generate_data.py
@@ -47,8 +53,7 @@ jobs:
           git add .
           git commit -m "Update generated data" || echo "No changes to commit"
           git push
-
-
+          
   preprocess_data:
     needs: fetch_data
     runs-on: ubuntu-latest
