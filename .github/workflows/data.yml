@@ -48,6 +48,10 @@ jobs:
         run: |
           dvc add data
           dvc push
+      - name: Set up Git identity
+        run: |
+          git config --global user.email "you@example.com"
+          git config --global user.name "Your Name"
       - name: Git Operations
         run: |
           git add .
