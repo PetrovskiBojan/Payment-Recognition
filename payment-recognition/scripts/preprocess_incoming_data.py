@@ -54,7 +54,7 @@ for index, row in last_100_rows.iterrows():
         last_100_rows.at[index, 'description'] = ""  # Clear the description
 
 # Step 5: Append the preprocessed data to the existing clean_data.csv
-output_path = '../data/preprocessed/preprocessed_data.csv'
+output_path = 'data/preprocessed/preprocessed_data.csv'
 if os.path.exists(output_path):
     existing_df = pd.read_csv(output_path)
     final_df = pd.concat([existing_df, last_100_rows], ignore_index=True)
