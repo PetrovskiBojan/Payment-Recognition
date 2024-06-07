@@ -3,11 +3,11 @@ from sklearn.preprocessing import LabelEncoder
 import joblib
 
 # Paths to the files
-preprocessed_data_path = '../data/preprocessed/preprocessed_data.csv'
-initial_preprocessed_data_path = '../data/preprocessed/initial_preprocessed_data.csv'
-generated_data_path = '../data/raw/generated_data.csv'
-initial_raw_data_path = '../data/raw/initial_data.csv'
-reference_data_path = '../data/validate/reference_data.csv'
+preprocessed_data_path = 'data/preprocessed/preprocessed_data.csv'
+initial_preprocessed_data_path = 'data/preprocessed/initial_preprocessed_data.csv'
+generated_data_path = 'data/raw/generated_data.csv'
+initial_raw_data_path = 'data/raw/initial_data.csv'
+reference_data_path = 'data/validate/reference_data.csv'
 
 # Function to read and append last 100 rows from one CSV to another
 def append_last_100_rows(source_path, target_path):
@@ -74,8 +74,8 @@ for ref in duplicates['reference'].unique():
     test_data = pd.concat([test_data, ref_duplicates.iloc[1:]])
 
 # Step 6: Save the separated data to new CSV files
-train_data_path = '../data/clean/train_data.csv'
-test_data_path = '../data/clean/test_data.csv'
+train_data_path = 'data/clean/train_data.csv'
+test_data_path = 'data/clean/test_data.csv'
 train_data.to_csv(train_data_path, index=False)
 test_data.to_csv(test_data_path, index=False)
 
