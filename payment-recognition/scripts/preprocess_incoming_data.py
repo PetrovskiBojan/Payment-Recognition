@@ -21,7 +21,7 @@ data_directory = 'data'
 run_dvc_pull(data_directory)
 
 # Step 2: Load the last 1000 rows from the data
-data_path = '../data/raw/generated_data.csv'
+data_path = 'data/raw/generated_data.csv'
 df = pd.read_csv(data_path)
 
 # Select the last 1000 rows
