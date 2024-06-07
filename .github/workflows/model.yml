@@ -1,0 +1,96 @@
+name: Model Training and Validation Pipeline
+
+on:
+  workflow_run:
+    workflows: ["Data Pipeline"]
+    types:
+      - completed
+
+jobs:
+  train_model:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: payment-recognition
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.12'
+
+      - name: Install and Configure Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          poetry config virtualenvs.create false
+          poetry install
+
+      - name: Install DVC with S3 support
+        run: |
+          pip install 'dvc[s3]'
+
+      - name: Configure DVC remote credentials
+        run: |
+          dvc remote modify origin access_key_id ${{ secrets.DVC_ACCESS_KEY_ID }} --local
+          dvc remote modify origin secret_access_key ${{ secrets.DVC_SECRET_ACCESS_KEY }} --local
+
+      - name: Pull Training Data with DVC
+        run: |
+          dvc pull data
+          dvc pull model
+
+      - name: Train Model
+        run: |
+          poetry run python scripts/model/train_model.py
+
+      - name: DVC Add and Push Model
+        run: |
+          dvc add models
+          dvc push
+
+      - name: Git Operations
+        run: |
+          git add .
+          git commit -m "Update trained models" || echo "No changes to commit"
+          git push
+
+  validate_classification:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    needs: train_model
+    defaults:
+      run:
+        working-directory: payment-recognition
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.12'
+
+      - name: Install and Configure Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          poetry config virtualenvs.create false
+          poetry install
+
+      - name: Install DVC with S3 support
+        run: |
+          pip install 'dvc[s3]'
+
+      - name: Configure DVC remote credentials
+        run: |
+          dvc remote modify origin access_key_id ${{ secrets.DVC_ACCESS_KEY_ID }} --local
+          dvc remote modify origin secret_access_key ${{ secrets.DVC_SECRET_ACCESS_KEY }} --local
+
+      - name: Pull Model with DVC
+        run: |
+          dvc pull models
+          dvc pull data
+
+      - name: Validate Classification
+        run: |
+          poetry run python scripts/model/validate_classification.py
