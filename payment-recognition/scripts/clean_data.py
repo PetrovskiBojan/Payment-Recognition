@@ -55,7 +55,7 @@ df['name'] = le.fit_transform(df['name'])
 df['IBAN'] = le.fit_transform(df['IBAN'])
 
 # Save the LabelEncoder parameters
-encoder_filename = '../data/scaler_params/label_encoders.joblib'
+encoder_filename = 'data/scaler_params/label_encoders.joblib'
 joblib.dump(le, encoder_filename)
 
 # Step 5: Separate unique references and duplicates
