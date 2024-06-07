@@ -24,8 +24,8 @@ os.environ['MLFLOW_TRACKING_USERNAME'] = os.environ['MLFLOW_TRACKING_USERNAME']
 os.environ['MLFLOW_TRACKING_PASSWORD'] = os.environ['MLFLOW_TRACKING_PASSWORD']
 
 # Load the data
-train_data_path = '../../data/clean/train_data.csv'
-test_data_path = '../../data/clean/test_data.csv'
+train_data_path = 'data/clean/train_data.csv'
+test_data_path = 'data/clean/test_data.csv'
 train_df = pd.read_csv(train_data_path)
 test_df = pd.read_csv(test_data_path)
 
@@ -75,7 +75,7 @@ print(f"Validation set F1 score: {f1:.4f}")
 date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 # Define the model save path without the model filename
-model_save_path = '../../models'
+model_save_path = 'models'
 os.makedirs(model_save_path, exist_ok=True)
 
 # Save the model locally
