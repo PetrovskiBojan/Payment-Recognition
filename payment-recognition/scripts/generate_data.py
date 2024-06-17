@@ -4,7 +4,7 @@ import random
 from faker import Faker
 
 # Ensure the directory exists
-os.makedirs('../data/raw', exist_ok=True)
+os.makedirs('data/raw', exist_ok=True)
 
 # Initialize Faker to generate fake data
 fake = Faker()
@@ -42,7 +42,7 @@ def generate_payment_record(base_record=None, anomalous=False):
         # Generate a similar payment
         payor_name = base_record['name']
         iban = base_record['IBAN']
-        amount = float(base_record['amount']) * random.uniform(0.95, 1.05)
+        amount = float(base_record['amount']) * random.uniform(0.99, 1.01)
         reference = base_record['reference']
         description = generate_description(reference, iban)
         day = int(base_record['day'])
@@ -53,7 +53,7 @@ def generate_payment_record(base_record=None, anomalous=False):
         payor_name = fake.name()
         iban = fake.iban()
         amount = round(random.uniform(10, 1000), 2)
-        reference = fake.ean(length=13)
+        reference = fake.ean(length=13) if not anomalous else ""
         description = generate_description(reference, iban, include_reference=not anomalous)
         day = random.randint(1, 28)
         month = random.randint(1, 12)
@@ -62,9 +62,8 @@ def generate_payment_record(base_record=None, anomalous=False):
         if anomalous:
             # Introduce anomalies
             if random.choice([True, False]):
-                amount *= random.uniform(1.1, 2)  # Deviate amount
+                amount *= random.uniform(0.95, 1.3)  # Deviate amount
             else:
-                reference = fake.ean(length=8)  # Incorrect reference format
                 description = generate_description(reference, iban, include_reference=False)  # Update description for the anomalous reference
 
     return {
@@ -111,13 +110,13 @@ def save_to_csv(data, filepath):
             writer.writerow(record)
 
 # File path for the existing and generated data
-existing_file_path = '../data/preprocessed/initial_preprocessed_data.csv'
-new_file_path = '../data/raw/generated_data.csv'
+existing_file_path = 'data/preprocessed/initial_preprocessed_data.csv'
+new_file_path = 'data/raw/generated_data.csv'
 
 # Read all payments
 base_records = read_payments(existing_file_path)
 
-# Sample 1000 records from the existing records
+# Sample 100 records from the existing records
 sampled_records = random.sample(base_records, 100) if len(base_records) >= 100 else base_records
 
 # Generate new data

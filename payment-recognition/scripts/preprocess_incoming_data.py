@@ -15,16 +15,16 @@ def run_dvc_pull(data_directory):
         raise
 
 # Specify the directory containing DVC-tracked data
-data_directory = 'data'  
+data_directory = 'data'
 
 # Pull the latest data from DVC
 run_dvc_pull(data_directory)
 
-# Step 2: Load the last 1000 rows from the data
+# Step 2: Load the last 100 rows from the data
 data_path = 'data/raw/generated_data.csv'
 df = pd.read_csv(data_path)
 
-# Select the last 1000 rows
+# Select the last 100 rows
 last_100_rows = df.tail(100)
 
 # Initialize the QA model with the new model name
@@ -32,15 +32,22 @@ qa_model = pipeline("question-answering", model="deepset/minilm-uncased-squad2",
 
 # Step 3: Define a function for model prediction
 def predict_reference(description):
-    # Define the question and context for the model
-    question = "What is the reference number?"
-    context = description
+    if not description or pd.isna(description):  # Check if the description is empty or NaN
+        return "", 0.0
     
-    # Perform the question answering task
-    result = qa_model(question=question, context=context)
-    
-    # Return the predicted reference and its confidence score
-    return result['answer'], result['score']
+    try:
+        # Define the question and context for the model
+        question = "What is the reference number?"
+        context = description
+        
+        # Perform the question answering task
+        result = qa_model(question=question, context=context)
+        
+        # Return the predicted reference and its confidence score
+        return result['answer'], result['score']
+    except Exception as e:
+        print(f"Error processing description: {description}. Error: {e}")
+        return "", 
 
 # Step 4: Apply the function to each row and update the DataFrame
 for index, row in last_100_rows.iterrows():
@@ -48,10 +55,10 @@ for index, row in last_100_rows.iterrows():
     reference, score = predict_reference(description)
     print("Processing row:", index + 1, "Reference:", reference, "Score:", str(score))
     
-    # Update the reference field if the model's confidence is above 90%
+    # Update the reference field if the model's confidence is above 20%
     if score > 0.2:
         last_100_rows.at[index, 'reference'] = str(reference)  # Explicitly cast to string if necessary
-        last_100_rows.at[index, 'description'] = ""  # Clear the description
+        last_100_rows.at[index, 'description'] = str(reference) 
 
 # Step 5: Append the preprocessed data to the existing clean_data.csv
 output_path = 'data/preprocessed/preprocessed_data.csv'
@@ -62,3 +69,4 @@ else:
     final_df = last_100_rows.copy()
 
 final_df.to_csv(output_path, index=False)
+print(f"Data has been processed and saved to {output_path}")

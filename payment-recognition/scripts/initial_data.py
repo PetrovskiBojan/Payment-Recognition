@@ -4,7 +4,7 @@ import random
 from faker import Faker
 
 # Ensure the directory exists
-os.makedirs('../data/raw', exist_ok=True)
+os.makedirs('data/raw', exist_ok=True)
 
 # Initialize Faker to generate fake data
 fake = Faker()
@@ -28,7 +28,7 @@ def generate_description(reference, iban, include_reference=True):
         patterns += [
             fake.text(max_nb_chars=50),
             f"My IBAN is {iban}, thank you",
-            f"Payment without reference",
+            "Payment without reference",
             "Just a monthly payment",
             "Regular payment",
             fake.sentence()
@@ -40,9 +40,13 @@ def generate_description(reference, iban, include_reference=True):
 def generate_payment_record(anomalous=False):
     payor_name = fake.name()
     iban = fake.iban()
-    amount = round(random.uniform(10, 1000), 2)
-    reference = fake.ean(length=13)
-    description = generate_description(reference, iban)
+    amount = round(random.uniform(10, 5000), 2)
+    
+    # For anomalous records, set reference to an empty string
+    reference = fake.ean(length=13) if not anomalous else ""
+    
+    description = generate_description(reference, iban, include_reference=not anomalous)
+    
     day = random.randint(1, 28)
     month = random.randint(1, 12)
     year = random.randint(2020, 2024)
@@ -51,9 +55,6 @@ def generate_payment_record(anomalous=False):
         # Introduce anomalies
         if random.choice([True, False]):
             amount *= random.uniform(1.1, 2)  # Deviate amount
-        else:
-            reference = fake.ean(length=8)  # Incorrect reference format
-            description = generate_description(reference, iban, include_reference=False)  # Update description for the anomalous reference
 
     return {
         "name": payor_name,
@@ -87,8 +88,8 @@ def save_to_csv(data, filepath):
             writer.writerow(record)
 
 # Generate and save data
-num_records = 5000  # Number of records to generate
+num_records = 2000  # Number of records to generate
 data = generate_data(num_records)
-save_to_csv(data, '../data/raw/initial_data.csv')
+save_to_csv(data, 'data/raw/initial_data.csv')
 
-print(f"{num_records} records have been generated and saved to data/raw/initial_data.csv")
+print(f"{num_records} records have been generated and saved to ../data/raw/initial_data.csv")
