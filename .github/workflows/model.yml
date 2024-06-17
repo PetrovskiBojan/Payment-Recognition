@@ -91,57 +91,49 @@ jobs:
           dvc pull models
           dvc pull data
   
-    test_model:
-      if: ${{ github.event.workflow_run.conclusion == 'success' }}
-      runs-on: ubuntu-latest
-      needs: validate_classification
-      defaults:
-        run:
-          working-directory: payment-recognition
-      steps:
-        - uses: actions/checkout@v2
+  test_model:
+     if: ${{ github.event.workflow_run.conclusion == 'success' }}
+     runs-on: ubuntu-latest
+     needs: validate_classification
+     defaults:
+       run:
+         working-directory: payment-recognition
+     steps:
+       - uses: actions/checkout@v2
+       - uses: actions/setup-python@v2
+         with:
+           python-version: '3.12'
 
-        - uses: actions/setup-python@v2
-          with:
-            python-version: '3.12'
+       - name: Install and Configure Poetry
+         run: |
+           curl -sSL https://install.python-poetry.org | python3 -
+           echo "$HOME/.local/bin" >> $GITHUB_PATH
+           poetry config virtualenvs.create false
+           poetry install
+       - name: Install DVC with S3 support
+         run: |
+           pip install 'dvc[s3]'
 
-        - name: Install and Configure Poetry
-          run: |
-            curl -sSL https://install.python-poetry.org | python3 -
-            echo "$HOME/.local/bin" >> $GITHUB_PATH
-            poetry config virtualenvs.create false
-            poetry install
+       - name: Configure DVC remote credentials
+         run: |
+           dvc remote modify origin access_key_id ${{ secrets.DVC_ACCESS_KEY_ID }} --local
+           dvc remote modify origin secret_access_key ${{ secrets.DVC_SECRET_ACCESS_KEY }} --local
+       - name: Pull Training Data with DVC
+         run: |
+           dvc pull data
+           dvc pull models
 
-        - name: Install DVC with S3 support
-          run: |
-            pip install 'dvc[s3]'
+       - name: Test Model
+         run: |
+           poetry run python scripts/model/test_model.py
 
-        - name: Configure DVC remote credentials
-          run: |
-            dvc remote modify origin access_key_id ${{ secrets.DVC_ACCESS_KEY_ID }} --local
-            dvc remote modify origin secret_access_key ${{ secrets.DVC_SECRET_ACCESS_KEY }} --local
+       - name: DVC Add and Push Model
+         run: |
+           dvc add models
+           dvc push
 
-        - name: Pull Training Data with DVC
-          run: |
-            dvc pull data
-            dvc pull models
-
-        - name: Train Model
-          run: |
-            poetry run python scripts/model/train_model.py
-
-        - name: DVC Add and Push Model
-          run: |
-            dvc add models
-            dvc push
-
-        - name: Git Operations
-          run: |
-            git add .
-            git commit -m "Update trained models" || echo "No changes to commit"
-            git push
-
-
-        - name: Validate Classification
-          run: |
-          poetry run python scripts/model/validate_classification.py
+       - name: Git Operations
+         run: |
+           git add .
+           git commit -m "Update trained models" || echo "No changes to commit"
+           git push
