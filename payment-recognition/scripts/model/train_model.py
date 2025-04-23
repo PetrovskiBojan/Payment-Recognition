@@ -17,7 +17,7 @@ from onnxruntime.quantization import quantize_dynamic, QuantType
 load_dotenv()
 
 # Setup MLflow to track to DagsHub
-mlflow.set_tracking_uri(os.environ['MLFLOW_TRACKING_URI'])
+# mlflow.set_tracking_uri(os.environ['MLFLOW_TRACKING_URI'])
 mlflow.set_experiment('Payment-recognition')
 os.environ['MLFLOW_TRACKING_USERNAME'] = os.environ['MLFLOW_TRACKING_USERNAME']
 os.environ['MLFLOW_TRACKING_PASSWORD'] = os.environ['MLFLOW_TRACKING_PASSWORD']
